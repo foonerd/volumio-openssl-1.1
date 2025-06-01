@@ -1,0 +1,30 @@
+FROM arm64v8/debian:bookworm
+
+# Optional: Enable backports if needed for tool versions
+RUN echo "deb http://deb.debian.org/debian bookworm-backports main" > /etc/apt/sources.list.d/bookworm-backports.list
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc-arm-linux-gnueabihf \
+    g++-arm-linux-gnueabihf \
+    devscripts \
+    debhelper \
+    dh-autoreconf \
+    fakeroot \
+    quilt \
+    git \
+    ca-certificates \
+    curl \
+    zlib1g-dev \
+    perl \
+    bc \
+    wget && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Fix dh_install permission issue
+RUN sed -i "s/doit(\"cp\", '--reflink=auto', \"-a\"/doit(\"cp\", '--reflink=auto', \"-a\", \"--no-preserve=ownership\"/g" /usr/bin/dh_install && \
+    sed -i "s/xargs(\\\@srcs, \"cp\", '--reflink=auto', \"-a\"/xargs(\\\@srcs, \"cp\", '--reflink=auto', \"-a\", \"--no-preserve=ownership\"/g" /usr/bin/dh_install
+
+WORKDIR /build
